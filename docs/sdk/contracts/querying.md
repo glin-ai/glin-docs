@@ -736,9 +736,9 @@ async function getTokenInfo(contractAddress: string) {
 
 ## Next Steps
 
-- 📞 [Call Contract Methods](/docs/sdk/contracts/calling) - Modify contract state
-- 📊 [Listen to Events](/docs/sdk/contracts/events) - Monitor contract events
-- 💡 [Full Example](/docs/sdk/examples/deploy-contract) - Complete contract interaction
+- 📞 [Call Contract Methods](/sdk/contracts/calling) - Modify contract state
+- 📊 [Listen to Events](/sdk/contracts/events) - Monitor contract events
+- 💡 [Full Example](/sdk/examples/deploy-contract) - Complete contract interaction
 
 ---
 

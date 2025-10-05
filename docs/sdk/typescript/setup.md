@@ -330,7 +330,7 @@ async function connectWallet() {
 }
 ```
 
-Full wallet integration guide: [Browser Extensions →](/docs/sdk/typescript/browser-extensions)
+Full wallet integration guide: [Browser Extensions →](/sdk/typescript/browser-extensions)
 
 ## Performance Optimization
 
@@ -462,11 +462,11 @@ npm install @glin-ai/sdk@latest
 
 ## Next Steps
 
-- 📖 [Browser Extension Integration](/docs/sdk/typescript/browser-extensions)
-- ⚛️ [React Integration Guide](/docs/sdk/typescript/react-integration)
-- 📚 [API Reference](/docs/sdk/typescript/api-reference)
-- 💡 [Examples](/docs/sdk/typescript/examples)
+- 📖 [Browser Extension Integration](/sdk/typescript/browser-extensions)
+- ⚛️ [React Integration Guide](/sdk/typescript/react-integration)
+- 📚 [API Reference](/sdk/typescript/api-reference)
+- 💡 [Examples](/sdk/typescript/examples)
 
 ---
 
-Need help? [Join our Discord](https://discord.gg/glin-ai) or [check examples](/docs/sdk/typescript/examples).
+Need help? [Join our Discord](https://discord.gg/glin-ai) or [check examples](/sdk/typescript/examples).

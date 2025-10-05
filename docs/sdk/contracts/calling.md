@@ -9,14 +9,14 @@ Learn how to call methods on deployed ink! smart contracts.
 
 After deploying a contract, you can interact with it by calling its methods. Contract methods fall into two categories:
 
-- 🔵 **Queries** - Read-only operations (covered in [Querying State](/docs/sdk/contracts/querying))
+- 🔵 **Queries** - Read-only operations (covered in [Querying State](/sdk/contracts/querying))
 - 🟢 **Transactions** - State-changing operations (this guide)
 
 This guide focuses on **transactions** - methods that modify contract state.
 
 ## Prerequisites
 
-- ✅ Contract deployed to GLIN Network ([Deploy Guide](/docs/sdk/contracts/deploying))
+- ✅ Contract deployed to GLIN Network ([Deploy Guide](/sdk/contracts/deploying))
 - ✅ Contract address and metadata
 - ✅ Account with GLIN for gas fees
 
@@ -749,9 +749,9 @@ console.log('New value:', output?.toNumber());
 
 ## Next Steps
 
-- 🔍 [Query Contract State](/docs/sdk/contracts/querying) - Read contract data
-- 📊 [Listen to Events](/docs/sdk/contracts/events) - Monitor contract events
-- 💡 [Full Example](/docs/sdk/examples/deploy-contract) - Complete contract interaction
+- 🔍 [Query Contract State](/sdk/contracts/querying) - Read contract data
+- 📊 [Listen to Events](/sdk/contracts/events) - Monitor contract events
+- 💡 [Full Example](/sdk/examples/deploy-contract) - Complete contract interaction
 
 ---
 

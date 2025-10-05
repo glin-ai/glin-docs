@@ -782,9 +782,9 @@ const unsub = await client.api.query.system.events((events) => {
 
 ## Next Steps
 
-- 📦 [Deploy Contracts](/docs/sdk/contracts/deploying) - Deploy your first contract
-- 📞 [Call Contract Methods](/docs/sdk/contracts/calling) - Interact with contracts
-- 💡 [Build an Indexer](/docs/sdk/examples/build-indexer) - Complete indexer example
+- 📦 [Deploy Contracts](/sdk/contracts/deploying) - Deploy your first contract
+- 📞 [Call Contract Methods](/sdk/contracts/calling) - Interact with contracts
+- 💡 [Build an Indexer](/sdk/examples/build-indexer) - Complete indexer example
 
 ---
 

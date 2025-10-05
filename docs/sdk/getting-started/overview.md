@@ -32,7 +32,7 @@ GLIN provides SDKs for multiple languages. Choose the one that fits your use cas
 npm install @glin-ai/sdk
 ```
 
-[TypeScript Setup Guide →](/docs/sdk/typescript/setup)
+[TypeScript Setup Guide →](/sdk/typescript/setup)
 
 ### Rust
 
@@ -46,13 +46,13 @@ npm install @glin-ai/sdk
 cargo add glin-client glin-contracts
 ```
 
-[Rust Setup Guide →](/docs/sdk/rust/setup)
+[Rust Setup Guide →](/sdk/rust/setup)
 
 ## Next Steps
 
-1. **[Installation →](/docs/sdk/getting-started/installation)** - Detailed installation instructions
-2. **[Quick Start →](/docs/sdk/getting-started/quickstart)** - Build your first app
-3. **[Core Concepts →](/docs/sdk/core-concepts/architecture)** - Understand GLIN architecture
+1. **[Installation →](/sdk/getting-started/installation)** - Detailed installation instructions
+2. **[Quick Start →](/sdk/getting-started/quickstart)** - Build your first app
+3. **[Core Concepts →](/sdk/core-concepts/architecture)** - Understand GLIN architecture
 
 ## What You'll Build
 

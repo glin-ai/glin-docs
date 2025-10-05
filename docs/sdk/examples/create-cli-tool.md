@@ -1309,9 +1309,9 @@ async function interactiveMode() {
 
 ## Next Steps
 
-- 💡 [Sign in with GLIN](/docs/sdk/examples/sign-in-with-glin) - Wallet authentication
-- 🚀 [Deploy Contract](/docs/sdk/examples/deploy-contract) - Contract deployment
-- 📊 [Build Indexer](/docs/sdk/examples/build-indexer) - Index blockchain data
+- 💡 [Sign in with GLIN](/sdk/examples/sign-in-with-glin) - Wallet authentication
+- 🚀 [Deploy Contract](/sdk/examples/deploy-contract) - Contract deployment
+- 📊 [Build Indexer](/sdk/examples/build-indexer) - Index blockchain data
 
 ---
 

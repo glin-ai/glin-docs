@@ -1,6 +1,17 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
+  networkSidebar: [
+    {
+      type: 'doc',
+      id: 'network/intro',
+      label: 'Overview',
+    },
+    'network/getting-started',
+    'network/validators',
+    'network/tokenomics',
+  ],
+
   sdkSidebar: [
     {
       type: 'doc',
@@ -68,6 +79,51 @@ const sidebars: SidebarsConfig = {
         'sdk/examples/build-indexer',
         'sdk/examples/create-cli-tool',
       ],
+    },
+  ],
+
+  federatedLearningSidebar: [
+    {
+      type: 'doc',
+      id: 'federated-learning/intro',
+      label: 'Overview',
+    },
+    {
+      type: 'category',
+      label: 'Getting Started',
+      items: [
+        'federated-learning/getting-started/create-task',
+        'federated-learning/getting-started/train-model',
+        'federated-learning/getting-started/deploy-model',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Concepts',
+      items: [
+        'federated-learning/concepts/tasks',
+        'federated-learning/concepts/gradients',
+        'federated-learning/concepts/aggregation',
+        'federated-learning/concepts/rewards',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Examples',
+      items: [
+        'federated-learning/examples/image-classification',
+        'federated-learning/examples/nlp-training',
+        'federated-learning/examples/federated-analytics',
+      ],
+    },
+    'federated-learning/api-reference',
+  ],
+
+  toolsSidebar: [
+    {
+      type: 'doc',
+      id: 'tools/intro',
+      label: 'Development Tools',
     },
   ],
 

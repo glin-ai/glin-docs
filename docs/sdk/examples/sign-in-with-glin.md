@@ -540,9 +540,9 @@ open http://localhost:3000/login
 
 ## What's Next?
 
-- 🔐 [Authentication Guide](/docs/sdk/core-concepts/authentication) - Learn the concepts
-- 💰 [Accounts](/docs/sdk/core-concepts/accounts) - Manage accounts
-- 📝 [Transactions](/docs/sdk/core-concepts/transactions) - Send transactions
+- 🔐 [Authentication Guide](/sdk/core-concepts/authentication) - Learn the concepts
+- 💰 [Accounts](/sdk/core-concepts/accounts) - Manage accounts
+- 📝 [Transactions](/sdk/core-concepts/transactions) - Send transactions
 
 ---
 

@@ -30,6 +30,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          routeBasePath: '/', // Remove /docs/ prefix since domain is already docs.glin.ai
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/glin-ai/glin-docs/tree/main/',
           showLastUpdateTime: true,
@@ -58,9 +59,27 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
+          sidebarId: 'networkSidebar',
+          position: 'left',
+          label: 'Network',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'sdkSidebar',
           position: 'left',
           label: 'SDK',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'federatedLearningSidebar',
+          position: 'left',
+          label: 'Federated Learning',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'toolsSidebar',
+          position: 'left',
+          label: 'Tools',
         },
         {
           type: 'docSidebar',
@@ -88,15 +107,15 @@ const config: Config = {
           items: [
             {
               label: 'SDK Overview',
-              to: '/docs/sdk/intro',
+              to: '/sdk/intro',
             },
             {
               label: 'TypeScript SDK',
-              to: '/docs/sdk/typescript/setup',
+              to: '/sdk/typescript/setup',
             },
             {
               label: 'Rust SDK',
-              to: '/docs/sdk/rust/setup',
+              to: '/sdk/rust/setup',
             },
           ],
         },

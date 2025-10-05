@@ -1125,9 +1125,9 @@ app.get('/metrics', async (req, res) => {
 
 ## Next Steps
 
-- 💡 [Sign in with GLIN](/docs/sdk/examples/sign-in-with-glin) - Wallet authentication
-- 🚀 [Deploy Contract](/docs/sdk/examples/deploy-contract) - Contract deployment
-- 📝 [Transactions](/docs/sdk/core-concepts/transactions) - Send and track transactions
+- 💡 [Sign in with GLIN](/sdk/examples/sign-in-with-glin) - Wallet authentication
+- 🚀 [Deploy Contract](/sdk/examples/deploy-contract) - Contract deployment
+- 📝 [Transactions](/sdk/core-concepts/transactions) - Send and track transactions
 
 ---
 

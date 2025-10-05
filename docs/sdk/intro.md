@@ -19,7 +19,7 @@ Perfect for web applications and Node.js backends.
 - **Features**: Browser extension support, React hooks
 - **Repository**: [glin-ai/glin-sdk](https://github.com/glin-ai/glin-sdk)
 
-[Get Started with TypeScript →](/docs/sdk/typescript/setup)
+[Get Started with TypeScript →](/sdk/typescript/setup)
 
 ### Rust SDK
 
@@ -33,7 +33,7 @@ Ideal for high-performance tools and backend services.
 - **Features**: Type-safe, zero-cost abstractions
 - **Repository**: [glin-ai/glin-sdk-rust](https://github.com/glin-ai/glin-sdk-rust)
 
-[Get Started with Rust →](/docs/sdk/rust/setup)
+[Get Started with Rust →](/sdk/rust/setup)
 
 ## ✨ Core Features
 
@@ -57,28 +57,28 @@ Plus language-specific extensions:
 
 Get started in 5 minutes:
 
-1. **[Installation →](/docs/sdk/getting-started/installation)** - Install the SDK for your language
-2. **[Quick Start →](/docs/sdk/getting-started/quickstart)** - Build your first app
-3. **[Examples →](/docs/sdk/examples/sign-in-with-glin)** - Learn from working examples
+1. **[Installation →](/sdk/getting-started/installation)** - Install the SDK for your language
+2. **[Quick Start →](/sdk/getting-started/quickstart)** - Build your first app
+3. **[Examples →](/sdk/examples/sign-in-with-glin)** - Learn from working examples
 
 ## 🎓 Learning Path
 
 ### For Frontend Developers
 1. Install TypeScript SDK
-2. Learn ["Sign in with GLIN"](/docs/sdk/core-concepts/authentication)
-3. Integrate with [React](/docs/sdk/typescript/react-integration)
-4. Build a [contract interaction UI](/docs/sdk/examples/deploy-contract)
+2. Learn ["Sign in with GLIN"](/sdk/core-concepts/authentication)
+3. Integrate with [React](/sdk/typescript/react-integration)
+4. Build a [contract interaction UI](/sdk/examples/deploy-contract)
 
 ### For Backend Developers
-1. Choose [TypeScript](/docs/sdk/typescript/setup) or [Rust](/docs/sdk/rust/setup)
-2. Learn [account management](/docs/sdk/core-concepts/accounts)
-3. Build a [blockchain indexer](/docs/sdk/examples/build-indexer)
-4. Deploy and [interact with contracts](/docs/sdk/contracts/deploying)
+1. Choose [TypeScript](/sdk/typescript/setup) or [Rust](/sdk/rust/setup)
+2. Learn [account management](/sdk/core-concepts/accounts)
+3. Build a [blockchain indexer](/sdk/examples/build-indexer)
+4. Deploy and [interact with contracts](/sdk/contracts/deploying)
 
 ### For CLI Tool Developers
-1. Install [Rust SDK](/docs/sdk/rust/setup)
-2. Learn [async patterns](/docs/sdk/rust/async-patterns)
-3. Build a [CLI tool](/docs/sdk/examples/create-cli-tool)
+1. Install [Rust SDK](/sdk/rust/setup)
+2. Learn [async patterns](/sdk/rust/async-patterns)
+3. Build a [CLI tool](/sdk/examples/create-cli-tool)
 
 ## 🔗 Network Endpoints
 

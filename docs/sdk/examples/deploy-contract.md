@@ -685,9 +685,9 @@ struct ContractConfig {
 
 ## What's Next?
 
-- 📞 [Call Contract Methods](/docs/sdk/contracts/calling) - Interact with deployed contract
-- 🔍 [Query Contract State](/docs/sdk/contracts/querying) - Read contract data
-- 📊 [Contract Events](/docs/sdk/contracts/events) - Listen to events
+- 📞 [Call Contract Methods](/sdk/contracts/calling) - Interact with deployed contract
+- 🔍 [Query Contract State](/sdk/contracts/querying) - Read contract data
+- 📊 [Contract Events](/sdk/contracts/events) - Listen to events
 
 ---
 

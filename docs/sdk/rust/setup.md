@@ -681,10 +681,10 @@ CMD ["my-glin-app"]
 
 ## Next Steps
 
-- 🛠️ [CLI Tools Guide](/docs/sdk/rust/cli-tools)
-- ⚡ [Async Patterns](/docs/sdk/rust/async-patterns)
-- 📚 [API Reference](/docs/sdk/rust/api-reference)
-- 💡 [Examples](/docs/sdk/rust/examples)
+- 🛠️ [CLI Tools Guide](/sdk/rust/cli-tools)
+- ⚡ [Async Patterns](/sdk/rust/async-patterns)
+- 📚 [API Reference](/sdk/rust/api-reference)
+- 💡 [Examples](/sdk/rust/examples)
 
 ---
 

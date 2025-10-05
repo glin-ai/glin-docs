@@ -9,7 +9,7 @@ Learn how to deploy ink! smart contracts to GLIN Network.
 
 Before deploying contracts, you need:
 
-- ✅ GLIN SDK installed ([TypeScript](/docs/sdk/typescript/setup) or [Rust](/docs/sdk/rust/setup))
+- ✅ GLIN SDK installed ([TypeScript](/sdk/typescript/setup) or [Rust](/sdk/rust/setup))
 - ✅ An ink! contract compiled to `.contract` file
 - ✅ Account with sufficient balance for gas fees
 - ✅ Connection to GLIN Network
@@ -840,9 +840,9 @@ const gasLimit = client.api.registry.createType('WeightV2', {
 
 Now that you can deploy contracts:
 
-- 📞 [Call Contract Methods](/docs/sdk/contracts/calling) - Interact with deployed contracts
-- 🔍 [Query Contract State](/docs/sdk/contracts/querying) - Read contract data
-- 📊 [Contract Events](/docs/sdk/contracts/events) - Listen to contract events
+- 📞 [Call Contract Methods](/sdk/contracts/calling) - Interact with deployed contracts
+- 🔍 [Query Contract State](/sdk/contracts/querying) - Read contract data
+- 📊 [Contract Events](/sdk/contracts/events) - Listen to contract events
 - 💡 **Example: Deploy Contract** - Complete example (coming soon)
 
 ---
