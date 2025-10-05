@@ -1,0 +1,459 @@
+---
+sidebar_position: 3
+---
+
+# Accounts
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Learn how to create and manage accounts on GLIN Network.
+
+## Overview
+
+Accounts on GLIN Network are cryptographic key pairs that allow you to:
+
+- 🔐 **Sign transactions** - Prove ownership of assets
+- 💰 **Hold balances** - Store GLIN tokens
+- 📝 **Deploy contracts** - Create smart contracts
+- 🔑 **Control identities** - Manage on-chain identity
+
+## Account Types
+
+### Development Accounts
+
+Pre-funded accounts for testing (NEVER use in production):
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Keyring } from '@glin-ai/sdk';
+
+const keyring = new Keyring({ type: 'sr25519' });
+
+// Well-known development accounts
+const alice = keyring.addFromUri('//Alice');
+const bob = keyring.addFromUri('//Bob');
+const charlie = keyring.addFromUri('//Charlie');
+const dave = keyring.addFromUri('//Dave');
+const eve = keyring.addFromUri('//Eve');
+
+console.log('Alice:', alice.address);
+console.log('Bob:', bob.address);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use glin_client::{get_dev_account, get_address};
+
+// Well-known development accounts
+let alice = get_dev_account("alice")?;
+let bob = get_dev_account("bob")?;
+let charlie = get_dev_account("charlie")?;
+
+let alice_addr = get_address(&alice);
+println!("Alice: {}", alice_addr);
+```
+
+</TabItem>
+</Tabs>
+
+### Production Accounts
+
+Securely generated accounts for real use:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Keyring } from '@glin-ai/sdk';
+import { mnemonicGenerate } from '@polkadot/util-crypto';
+
+// Generate new mnemonic
+const mnemonic = mnemonicGenerate(12);
+console.log('Mnemonic:', mnemonic);
+// Save this securely!
+
+// Create account from mnemonic
+const keyring = new Keyring({ type: 'sr25519' });
+const account = keyring.addFromMnemonic(mnemonic);
+
+console.log('Address:', account.address);
+console.log('Public key:', account.publicKey);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use glin_client::account_from_seed;
+use bip39::{Mnemonic, Language};
+
+// Generate new mnemonic
+let mnemonic = Mnemonic::generate_in(Language::English, 12)?;
+println!("Mnemonic: {}", mnemonic);
+// Save this securely!
+
+// Create account from mnemonic
+let account = account_from_seed(mnemonic.to_string().as_str())?;
+let address = glin_client::get_address(&account);
+
+println!("Address: {}", address);
+```
+
+</TabItem>
+</Tabs>
+
+## Create Accounts
+
+### From Seed Phrase
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Keyring } from '@glin-ai/sdk';
+
+const keyring = new Keyring({ type: 'sr25519' });
+
+// From 12-word mnemonic
+const account = keyring.addFromMnemonic(
+  'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12'
+);
+
+console.log('Address:', account.address);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use glin_client::account_from_seed;
+
+let mnemonic = "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12";
+let account = account_from_seed(mnemonic)?;
+
+let address = glin_client::get_address(&account);
+println!("Address: {}", address);
+```
+
+</TabItem>
+</Tabs>
+
+### From Private Key
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Keyring } from '@glin-ai/sdk';
+
+const keyring = new Keyring({ type: 'sr25519' });
+
+// From hex private key
+const account = keyring.addFromUri('0x1234567890abcdef...');
+
+console.log('Address:', account.address);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// From seed phrase derivation
+let account = account_from_seed("0x1234567890abcdef...")?;
+```
+
+</TabItem>
+</Tabs>
+
+## Check Balance
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { GlinClient } from '@glin-ai/sdk';
+
+const client = await GlinClient.connect('wss://testnet.glin.ai');
+
+const balance = await client.getBalance(account.address);
+
+console.log('Free:', balance.free.toString());
+console.log('Reserved:', balance.reserved.toString());
+console.log('Frozen:', balance.frozen.toString());
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use glin_client::create_client;
+
+let client = create_client("wss://testnet.glin.ai").await?;
+
+let balance = client.get_balance(&address).await?;
+println!("Balance: {} GLIN", balance);
+```
+
+</TabItem>
+</Tabs>
+
+## Transfer Funds
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+// Transfer 10 GLIN
+const amount = 10n * 10n ** 18n;
+
+const transfer = client.api.tx.balances.transfer(
+  recipientAddress,
+  amount
+);
+
+const hash = await transfer.signAndSend(sender);
+console.log('Transaction hash:', hash.toHex());
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use subxt::tx::PairSigner;
+
+let amount = 10u128 * 10u128.pow(18); // 10 GLIN
+
+let transfer_tx = subxt::dynamic::tx(
+    "Balances",
+    "transfer",
+    vec![
+        subxt::dynamic::Value::from_bytes(recipient_address),
+        subxt::dynamic::Value::u128(amount),
+    ],
+);
+
+let signer = PairSigner::new(sender);
+let hash = client
+    .tx()
+    .sign_and_submit_default(&transfer_tx, &signer)
+    .await?;
+
+println!("Transaction: {:?}", hash);
+```
+
+</TabItem>
+</Tabs>
+
+## Account Security
+
+### ⚠️ Development Accounts
+
+**NEVER use in production:**
+- `//Alice`, `//Bob`, etc. are publicly known
+- Private keys are hardcoded in many tools
+- Anyone can access funds from these accounts
+
+### ✅ Production Best Practices
+
+1. **Generate Secure Mnemonics**
+   ```typescript
+   const mnemonic = mnemonicGenerate(12); // or 24 words
+   ```
+
+2. **Store Mnemonics Securely**
+   - Use hardware wallets (Ledger, Trezor)
+   - Encrypted password managers
+   - Never commit to git or share online
+
+3. **Use Environment Variables**
+   ```typescript
+   const mnemonic = process.env.WALLET_MNEMONIC;
+   if (!mnemonic) throw new Error('WALLET_MNEMONIC not set');
+   ```
+
+4. **Separate Accounts by Purpose**
+   - Hot wallet: Small amounts for daily use
+   - Cold wallet: Large amounts for storage
+   - Contract deployment: Separate from funds
+
+## Account Derivation
+
+Create multiple accounts from one seed:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+const keyring = new Keyring({ type: 'sr25519' });
+
+// Derive child accounts
+const account0 = keyring.addFromUri(`${mnemonic}//0`);
+const account1 = keyring.addFromUri(`${mnemonic}//1`);
+const account2 = keyring.addFromUri(`${mnemonic}//2`);
+
+console.log('Account 0:', account0.address);
+console.log('Account 1:', account1.address);
+console.log('Account 2:', account2.address);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Derive child accounts
+let account0 = account_from_seed(&format!("{}//0", mnemonic))?;
+let account1 = account_from_seed(&format!("{}//1", mnemonic))?;
+let account2 = account_from_seed(&format!("{}//2", mnemonic))?;
+
+println!("Account 0: {}", glin_client::get_address(&account0));
+println!("Account 1: {}", glin_client::get_address(&account1));
+println!("Account 2: {}", glin_client::get_address(&account2));
+```
+
+</TabItem>
+</Tabs>
+
+## Multi-Signature Accounts
+
+Create accounts controlled by multiple parties:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { encodeMultiAddress } from '@polkadot/util-crypto';
+
+// Create multisig with 2-of-3 threshold
+const signatories = [
+  alice.address,
+  bob.address,
+  charlie.address
+];
+
+const threshold = 2;
+
+const multisigAddress = encodeMultiAddress(signatories, threshold);
+console.log('Multisig address:', multisigAddress);
+
+// Send funds to multisig
+const transfer = client.api.tx.balances.transfer(multisigAddress, amount);
+await transfer.signAndSend(alice);
+
+// Execute from multisig (requires 2 signatures)
+const call = client.api.tx.balances.transfer(recipient, amount);
+
+// First approval
+const approveAsMulti1 = client.api.tx.multisig.approveAsMulti(
+  threshold,
+  signatories.filter(s => s !== alice.address),
+  null,
+  call.method.hash,
+  0
+);
+await approveAsMulti1.signAndSend(alice);
+
+// Second approval + execution
+const asMulti = client.api.tx.multisig.asMulti(
+  threshold,
+  signatories.filter(s => s !== bob.address),
+  null,
+  call.method,
+  0
+);
+await asMulti.signAndSend(bob);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Multisig support in Rust SDK
+// See Polkadot documentation for multisig implementation
+```
+
+</TabItem>
+</Tabs>
+
+## Proxy Accounts
+
+Delegate permissions to other accounts:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+// Add proxy
+const addProxy = client.api.tx.proxy.addProxy(
+  proxyAddress,
+  'Any', // Proxy type: Any, NonTransfer, Governance, etc.
+  0 // Delay in blocks
+);
+
+await addProxy.signAndSend(mainAccount);
+
+// Execute via proxy
+const call = client.api.tx.balances.transfer(recipient, amount);
+
+const proxy = client.api.tx.proxy.proxy(
+  mainAccount.address,
+  null, // Force proxy type
+  call
+);
+
+await proxy.signAndSend(proxyAccount);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Add proxy
+let add_proxy_tx = subxt::dynamic::tx(
+    "Proxy",
+    "add_proxy",
+    vec![
+        proxy_address.into(),
+        "Any".into(),
+        0u32.into(),
+    ],
+);
+
+client.tx()
+    .sign_and_submit_default(&add_proxy_tx, &main_signer)
+    .await?;
+
+// Execute via proxy
+let call_tx = subxt::dynamic::tx(/* ... */);
+
+let proxy_tx = subxt::dynamic::tx(
+    "Proxy",
+    "proxy",
+    vec![
+        main_address.into(),
+        None::<()>.into(),
+        call_tx.into(),
+    ],
+);
+
+client.tx()
+    .sign_and_submit_default(&proxy_tx, &proxy_signer)
+    .await?;
+```
+
+</TabItem>
+</Tabs>
+
+## Next Steps
+
+- 📝 [Transactions](/docs/sdk/core-concepts/transactions) - Send and track transactions
+- 🔐 [Authentication](/docs/sdk/core-concepts/authentication) - Sign in with GLIN
+- 💡 [Examples](/docs/sdk/examples/sign-in-with-glin) - Practical examples
+
+---
+
+Need help? [Join our Discord](https://discord.gg/glin-ai)

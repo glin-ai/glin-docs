@@ -1,0 +1,537 @@
+---
+sidebar_position: 4
+---
+
+# Transactions
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Learn how to create, sign, and submit transactions to GLIN Network.
+
+## Overview
+
+Transactions are state-changing operations that:
+
+- 💸 **Transfer tokens** between accounts
+- 📝 **Execute contract methods**
+- 🗳️ **Participate in governance**
+- ⚙️ **Change system state**
+
+All transactions require gas fees paid in GLIN tokens.
+
+## Transaction Lifecycle
+
+```
+1. Create → 2. Sign → 3. Submit → 4. In Block → 5. Finalized
+```
+
+### 1. Create Transaction
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { GlinClient } from '@glin-ai/sdk';
+
+const client = await GlinClient.connect('wss://testnet.glin.ai');
+
+// Create a transfer transaction
+const tx = client.api.tx.balances.transfer(
+  recipientAddress,
+  1000n * 10n ** 18n // 1000 GLIN
+);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use glin_client::create_client;
+
+let client = create_client("wss://testnet.glin.ai").await?;
+
+// Create a transfer transaction
+let tx = subxt::dynamic::tx(
+    "Balances",
+    "transfer",
+    vec![
+        subxt::dynamic::Value::from_bytes(recipient_address),
+        subxt::dynamic::Value::u128(1000u128 * 10u128.pow(18)),
+    ],
+);
+```
+
+</TabItem>
+</Tabs>
+
+### 2. Sign Transaction
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Keyring } from '@glin-ai/sdk';
+
+const keyring = new Keyring({ type: 'sr25519' });
+const sender = keyring.addFromUri('//Alice');
+
+// Sign the transaction
+const signedTx = tx.sign(sender);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+use subxt::tx::PairSigner;
+
+let sender = glin_client::get_dev_account("alice")?;
+let signer = PairSigner::new(sender);
+
+// Signing happens during submission
+```
+
+</TabItem>
+</Tabs>
+
+### 3. Submit Transaction
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+// Sign and submit in one step
+const hash = await tx.signAndSend(sender);
+
+console.log('Transaction hash:', hash.toHex());
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Sign and submit
+let hash = client
+    .tx()
+    .sign_and_submit_default(&tx, &signer)
+    .await?;
+
+println!("Transaction hash: {:?}", hash);
+```
+
+</TabItem>
+</Tabs>
+
+### 4. Wait for Finalization
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+await new Promise((resolve, reject) => {
+  tx.signAndSend(sender, ({ status, events, dispatchError }) => {
+    if (status.isInBlock) {
+      console.log(`In block: ${status.asInBlock.toHex()}`);
+    }
+
+    if (status.isFinalized) {
+      console.log(`Finalized: ${status.asFinalized.toHex()}`);
+
+      if (dispatchError) {
+        reject(new Error('Transaction failed'));
+      } else {
+        resolve(status.asFinalized);
+      }
+    }
+  });
+});
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Wait for finalization
+let events = client.wait_for_finalization(hash).await?;
+
+println!("Transaction finalized!");
+println!("Events: {:?}", events);
+```
+
+</TabItem>
+</Tabs>
+
+## Common Transactions
+
+### Transfer GLIN
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+const transfer = client.api.tx.balances.transfer(
+  recipientAddress,
+  100n * 10n ** 18n // 100 GLIN
+);
+
+await transfer.signAndSend(sender);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+let transfer_tx = subxt::dynamic::tx(
+    "Balances",
+    "transfer",
+    vec![
+        recipient_address.into(),
+        (100u128 * 10u128.pow(18)).into(),
+    ],
+);
+
+client.tx()
+    .sign_and_submit_default(&transfer_tx, &signer)
+    .await?;
+```
+
+</TabItem>
+</Tabs>
+
+### Batch Transactions
+
+Execute multiple transactions atomically:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+const tx1 = client.api.tx.balances.transfer(alice.address, 100n);
+const tx2 = client.api.tx.balances.transfer(bob.address, 200n);
+const tx3 = client.api.tx.balances.transfer(charlie.address, 300n);
+
+// Batch all transactions
+const batch = client.api.tx.utility.batch([tx1, tx2, tx3]);
+
+await batch.signAndSend(sender);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+let batch_tx = subxt::dynamic::tx(
+    "Utility",
+    "batch",
+    vec![
+        tx1.into(),
+        tx2.into(),
+        tx3.into(),
+    ],
+);
+
+client.tx()
+    .sign_and_submit_default(&batch_tx, &signer)
+    .await?;
+```
+
+</TabItem>
+</Tabs>
+
+### Force Batch (Continue on Error)
+
+```typescript
+// batchAll: fails if any transaction fails
+const batchAll = client.api.tx.utility.batchAll([tx1, tx2, tx3]);
+
+// forceBatch: continues even if some transactions fail
+const forceBatch = client.api.tx.utility.forceBatch([tx1, tx2, tx3]);
+```
+
+## Transaction Fees
+
+### Estimate Fees
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+const info = await tx.paymentInfo(sender);
+
+console.log('Estimated fee:', info.partialFee.toString());
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Fee estimation in Rust
+let payment_info = client
+    .tx()
+    .payment_details(&tx, &signer)
+    .await?;
+
+println!("Estimated fee: {:?}", payment_info);
+```
+
+</TabItem>
+</Tabs>
+
+### Add Tip
+
+Prioritize your transaction by adding a tip:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+const tip = 10n ** 16n; // 0.01 GLIN
+
+await tx.signAndSend(sender, { tip });
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Tips in Rust (implementation depends on SDK version)
+```
+
+</TabItem>
+</Tabs>
+
+## Transaction Status
+
+Track transaction status:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+tx.signAndSend(sender, ({ status, events }) => {
+  if (status.isReady) {
+    console.log('🔄 Ready to be included');
+  }
+
+  if (status.isBroadcast) {
+    console.log('📡 Broadcast to network');
+  }
+
+  if (status.isInBlock) {
+    console.log('📦 Included in block');
+  }
+
+  if (status.isFinalized) {
+    console.log('✅ Finalized');
+
+    // Process events
+    events.forEach(({ event }) => {
+      console.log('Event:', event.toHuman());
+    });
+  }
+
+  if (status.isInvalid) {
+    console.log('❌ Invalid transaction');
+  }
+
+  if (status.isDropped) {
+    console.log('⚠️ Dropped from pool');
+  }
+});
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+// Transaction progress tracking
+let mut progress = client
+    .tx()
+    .sign_and_submit_then_watch_default(&tx, &signer)
+    .await?;
+
+while let Some(status) = progress.next().await {
+    match status? {
+        TxStatus::Future => println!("🔄 Future"),
+        TxStatus::Ready => println!("📡 Ready"),
+        TxStatus::Broadcast(_) => println!("📡 Broadcast"),
+        TxStatus::InBlock(block) => println!("📦 In block: {:?}", block),
+        TxStatus::Finalized(block) => {
+            println!("✅ Finalized: {:?}", block);
+            break;
+        }
+        TxStatus::Invalid => println!("❌ Invalid"),
+        TxStatus::Dropped => println!("⚠️ Dropped"),
+        _ => {}
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Error Handling
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+try {
+  await new Promise((resolve, reject) => {
+    tx.signAndSend(sender, ({ status, dispatchError }) => {
+      if (status.isFinalized) {
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            const decoded = client.api.registry.findMetaError(
+              dispatchError.asModule
+            );
+            reject(new Error(`${decoded.section}.${decoded.name}: ${decoded.docs}`));
+          } else {
+            reject(new Error(dispatchError.toString()));
+          }
+        } else {
+          resolve(status.asFinalized);
+        }
+      }
+    });
+  });
+} catch (error) {
+  console.error('Transaction failed:', error.message);
+}
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+match client.tx().sign_and_submit_default(&tx, &signer).await {
+    Ok(hash) => {
+        println!("Transaction submitted: {:?}", hash);
+
+        match client.wait_for_finalization(hash).await {
+            Ok(events) => println!("Success! Events: {:?}", events),
+            Err(e) => eprintln!("Transaction failed: {}", e),
+        }
+    }
+    Err(e) => {
+        eprintln!("Failed to submit: {}", e);
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Best Practices
+
+### 1. Always Wait for Finalization
+
+```typescript
+// ❌ Bad - don't assume success
+const hash = await tx.signAndSend(sender);
+// Transaction might still fail!
+
+// ✅ Good - wait for finalization
+await new Promise((resolve) => {
+  tx.signAndSend(sender, ({ status }) => {
+    if (status.isFinalized) resolve();
+  });
+});
+```
+
+### 2. Check Balance Before Transfer
+
+```typescript
+const balance = await client.getBalance(sender.address);
+const amount = 1000n * 10n ** 18n;
+
+if (balance.free < amount) {
+  throw new Error('Insufficient balance');
+}
+```
+
+### 3. Handle Nonce Manually (Advanced)
+
+```typescript
+// Get next nonce
+const nonce = await client.api.rpc.system.accountNextIndex(sender.address);
+
+// Use specific nonce
+await tx.signAndSend(sender, { nonce });
+```
+
+### 4. Set Mortality Period
+
+```typescript
+// Transaction expires after 64 blocks
+await tx.signAndSend(sender, { era: 64 });
+```
+
+## Transaction Events
+
+Process events emitted by transactions:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+tx.signAndSend(sender, ({ status, events }) => {
+  if (status.isFinalized) {
+    events.forEach(({ event }) => {
+      if (client.api.events.system.ExtrinsicSuccess.is(event)) {
+        console.log('✅ Transaction succeeded');
+      }
+
+      if (client.api.events.system.ExtrinsicFailed.is(event)) {
+        console.log('❌ Transaction failed');
+      }
+
+      if (client.api.events.balances.Transfer.is(event)) {
+        const [from, to, amount] = event.data;
+        console.log(`💸 Transfer: ${from} → ${to}: ${amount}`);
+      }
+    });
+  }
+});
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+let events = client.wait_for_finalization(hash).await?;
+
+for event in events.iter() {
+    let event = event?;
+
+    if let Some(transfer) = event.as_event::<BalancesTransfer>()? {
+        println!("💸 Transfer: {:?} → {:?}: {}",
+            transfer.from,
+            transfer.to,
+            transfer.amount
+        );
+    }
+}
+
+#[derive(Debug, subxt::Event)]
+#[event(module = "Balances")]
+struct BalancesTransfer {
+    from: subxt::utils::AccountId32,
+    to: subxt::utils::AccountId32,
+    amount: u128,
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Next Steps
+
+- 💰 [Accounts](/docs/sdk/core-concepts/accounts) - Manage accounts
+- 📝 [Deploy Contracts](/docs/sdk/contracts/deploying) - Deploy smart contracts
+- 💡 [Examples](/docs/sdk/examples/sign-in-with-glin) - Practical examples
+
+---
+
+Need help? [Join our Discord](https://discord.gg/glin-ai)
