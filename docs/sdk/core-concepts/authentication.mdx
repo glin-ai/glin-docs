@@ -1,0 +1,525 @@
+---
+sidebar_position: 2
+---
+
+# Authentication
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Learn how to implement "Sign in with GLIN" - a wallet-based authentication system similar to "Sign in with Ethereum" or OAuth.
+
+## 🎯 What is "Sign in with GLIN"?
+
+"Sign in with GLIN" allows users to authenticate using their GLIN wallet instead of traditional username/password. This provides:
+
+- 🔐 **No passwords needed** - Users authenticate with their existing wallet
+- 👤 **User-owned identity** - Users control their own data
+- 🔒 **Cryptographic security** - Signatures prove identity without revealing private keys
+- 🌐 **Cross-platform** - Works with browser extensions and mobile wallets
+
+## How It Works
+
+```
+┌─────────────┐         ┌──────────────┐         ┌─────────┐
+│  Your App   │────────▶│ GLIN Wallet  │────────▶│Backend │
+│  (Frontend) │         │  Extension   │         │ Server  │
+└─────────────┘         └──────────────┘         └─────────┘
+      │                        │                        │
+      │ 1. Request signature   │                        │
+      ├───────────────────────▶│                        │
+      │                        │                        │
+      │ 2. User approves       │                        │
+      │ 3. Return signature    │                        │
+      │◀───────────────────────┤                        │
+      │                        │                        │
+      │ 4. Send to backend for verification             │
+      ├────────────────────────┼───────────────────────▶│
+      │                        │                        │
+      │ 5. Verify signature & create session           │
+      │◀────────────────────────────────────────────────┤
+      │                        │                        │
+      │ 6. User authenticated  │                        │
+```
+
+## Frontend Implementation
+
+### Step 1: Request Signature from Wallet
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="auth.ts"
+import { GlinAuth } from '@glin-ai/sdk';
+
+async function signIn() {
+  const auth = new GlinAuth();
+
+  // Request signature from wallet
+  const result = await auth.authenticate('Your App Name');
+
+  console.log('Address:', result.address);
+  console.log('Signature:', result.signature);
+  console.log('Message:', result.message);
+
+  return result;
+}
+```
+
+The `authenticate()` method:
+1. Detects the GLIN wallet extension
+2. Requests the user's address
+3. Creates a unique message to sign
+4. Prompts the user to sign the message
+5. Returns the signature and address
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="auth.rs"
+use glin_client::{account_from_seed, sign_message};
+use anyhow::Result;
+
+pub fn sign_auth_message(seed: &str, app_name: &str) -> Result<(String, String, String)> {
+    // Create account from seed
+    let account = account_from_seed(seed)?;
+
+    // Create message to sign
+    let message = format!(
+        "Sign in to {}\n\nAddress: {}\nNonce: {}",
+        app_name,
+        account.public_key(),
+        generate_nonce()
+    );
+
+    // Sign the message
+    let signature = sign_message(&account, &message)?;
+
+    Ok((
+        account.public_key().to_string(),
+        hex::encode(signature),
+        message
+    ))
+}
+
+fn generate_nonce() -> String {
+    use std::time::SystemTime;
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+        .to_string()
+}
+```
+
+:::note Backend Focus
+Rust SDK is typically used for backend services. For frontend auth, use TypeScript SDK with browser wallet integration.
+:::
+
+</TabItem>
+</Tabs>
+
+### Step 2: Send to Backend
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="auth.ts"
+async function authenticateUser() {
+  // Get signature from wallet
+  const auth = new GlinAuth();
+  const { address, signature, message } = await auth.authenticate('Your App');
+
+  // Send to backend
+  const response = await fetch('/api/auth/glin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address, signature, message })
+  });
+
+  if (!response.ok) {
+    throw new Error('Authentication failed');
+  }
+
+  const data = await response.json();
+  console.log('Authenticated! Session ID:', data.sessionId);
+
+  return data;
+}
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="auth_client.rs"
+use reqwest;
+use serde::{Serialize, Deserialize};
+use anyhow::Result;
+
+#[derive(Serialize)]
+struct AuthRequest {
+    address: String,
+    signature: String,
+    message: String,
+}
+
+#[derive(Deserialize)]
+struct AuthResponse {
+    session_id: String,
+    address: String,
+}
+
+pub async fn authenticate(address: String, signature: String, message: String) -> Result<AuthResponse> {
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post("https://api.yourapp.com/auth/glin")
+        .json(&AuthRequest { address, signature, message })
+        .send()
+        .await?;
+
+    let auth_response = response.json::<AuthResponse>().await?;
+    println!("Authenticated! Session: {}", auth_response.session_id);
+
+    Ok(auth_response)
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Backend Verification
+
+### Step 3: Verify Signature
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript (Node.js)">
+
+```typescript title="api/auth/glin.ts"
+import { GlinAuth } from '@glin-ai/sdk';
+
+export async function POST(req: Request) {
+  const { address, signature, message } = await req.json();
+
+  // Verify the signature
+  const isValid = GlinAuth.verifySignature(address, message, signature);
+
+  if (!isValid) {
+    return Response.json(
+      { error: 'Invalid signature' },
+      { status: 401 }
+    );
+  }
+
+  // Signature is valid! Create session
+  const sessionId = await createSession(address);
+
+  return Response.json({
+    success: true,
+    sessionId,
+    address
+  });
+}
+
+async function createSession(address: string): Promise<string> {
+  // Store session in your database
+  // Return session ID
+  return 'session_' + Date.now();
+}
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust (Axum)">
+
+```rust title="routes/auth.rs"
+use axum::{Json, http::StatusCode};
+use serde::{Deserialize, Serialize};
+use glin_client::verify_signature;
+
+#[derive(Deserialize)]
+pub struct AuthRequest {
+    address: String,
+    signature: String,
+    message: String,
+}
+
+#[derive(Serialize)]
+pub struct AuthResponse {
+    success: bool,
+    session_id: String,
+    address: String,
+}
+
+pub async fn glin_auth(
+    Json(payload): Json<AuthRequest>,
+) -> Result<Json<AuthResponse>, StatusCode> {
+    // Verify signature
+    let signature_bytes = hex::decode(&payload.signature)
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
+
+    let is_valid = verify_signature(
+        &payload.address,
+        &payload.message,
+        &signature_bytes,
+    ).map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+    if !is_valid {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    // Create session
+    let session_id = create_session(&payload.address).await;
+
+    Ok(Json(AuthResponse {
+        success: true,
+        session_id,
+        address: payload.address,
+    }))
+}
+
+async fn create_session(address: &str) -> String {
+    // Store session in database
+    format!("session_{}", chrono::Utc::now().timestamp())
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Complete Example
+
+### React + Next.js Example
+
+```typescript title="app/auth/page.tsx"
+'use client';
+
+import { useState } from 'react';
+import { GlinAuth } from '@glin-ai/sdk';
+
+export default function AuthPage() {
+  const [user, setUser] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignIn() {
+    setLoading(true);
+    try {
+      // 1. Get signature from wallet
+      const auth = new GlinAuth();
+      const { address, signature, message } = await auth.authenticate('My App');
+
+      // 2. Send to backend
+      const response = await fetch('/api/auth/glin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, signature, message }),
+      });
+
+      if (!response.ok) throw new Error('Auth failed');
+
+      const data = await response.json();
+
+      // 3. Save session and update UI
+      localStorage.setItem('sessionId', data.sessionId);
+      setUser(address);
+
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      alert('Sign in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (user) {
+    return (
+      <div>
+        <h1>Welcome!</h1>
+        <p>Address: {user}</p>
+        <button onClick={() => {
+          setUser(null);
+          localStorage.removeItem('sessionId');
+        }}>
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1>Sign In</h1>
+      <button onClick={handleSignIn} disabled={loading}>
+        {loading ? 'Signing in...' : 'Sign in with GLIN'}
+      </button>
+    </div>
+  );
+}
+```
+
+### API Route (Next.js App Router)
+
+```typescript title="app/api/auth/glin/route.ts"
+import { NextRequest, NextResponse } from 'next/server';
+import { GlinAuth } from '@glin-ai/sdk';
+
+export async function POST(req: NextRequest) {
+  try {
+    const { address, signature, message } = await req.json();
+
+    // Verify signature
+    const isValid = GlinAuth.verifySignature(address, message, signature);
+
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
+    }
+
+    // Create session (implement your session logic)
+    const sessionId = crypto.randomUUID();
+
+    // In production, store session in database:
+    // await db.sessions.create({ id: sessionId, address, expiresAt: ... });
+
+    return NextResponse.json({
+      success: true,
+      sessionId,
+      address
+    });
+
+  } catch (error) {
+    console.error('Auth error:', error);
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Security Best Practices
+
+### ✅ Do's
+
+1. **Verify signatures on the backend** - Never trust the frontend
+2. **Use nonces** - Prevent replay attacks with unique messages
+3. **Set session expiry** - Don't create永久 sessions
+4. **Store sessions securely** - Use httpOnly cookies or secure storage
+5. **Rate limit** - Prevent brute force attacks
+
+### ❌ Don'ts
+
+1. **Don't store private keys** - Users own their keys
+2. **Don't trust the address** - Always verify the signature
+3. **Don't skip HTTPS** - Always use secure connections
+4. **Don't reuse messages** - Each signature should be unique
+5. **Don't expose session IDs** - Keep them secure
+
+## Message Format
+
+The signed message should include:
+
+```typescript
+const message = `
+Sign in to ${appName}
+
+Address: ${address}
+Nonce: ${nonce}
+Issued At: ${timestamp}
+`;
+```
+
+Example:
+```
+Sign in to My DApp
+
+Address: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+Nonce: abc123xyz789
+Issued At: 2025-10-05T10:00:00Z
+```
+
+## Error Handling
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+try {
+  const auth = new GlinAuth();
+  const result = await auth.authenticate('My App');
+} catch (error) {
+  if (error.message.includes('No wallet found')) {
+    // Wallet extension not installed
+    alert('Please install GLIN wallet extension');
+  } else if (error.message.includes('User rejected')) {
+    // User cancelled the signature
+    console.log('User cancelled sign in');
+  } else {
+    // Other error
+    console.error('Sign in failed:', error);
+  }
+}
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust
+match sign_auth_message(seed, "My App") {
+    Ok((address, signature, message)) => {
+        println!("Signed successfully!");
+    }
+    Err(e) => {
+        eprintln!("Sign in failed: {}", e);
+        // Handle specific errors
+        if e.to_string().contains("Invalid seed") {
+            eprintln!("Invalid account seed");
+        }
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Next Steps
+
+- 📖 [Browser Extension Integration](/docs/sdk/typescript/browser-extensions)
+- 🔐 [Account Management](/docs/sdk/core-concepts/accounts)
+- 💻 [Complete Example: Sign in with GLIN](/docs/sdk/examples/sign-in-with-glin)
+
+## Troubleshooting
+
+### Wallet Not Detected
+
+Make sure the GLIN wallet extension is installed:
+```typescript
+import { GlinAuth } from '@glin-ai/sdk';
+
+const auth = new GlinAuth();
+const hasWallet = await auth.hasWallet();
+
+if (!hasWallet) {
+  // Show install instructions
+  window.open('https://wallet.glin.ai', '_blank');
+}
+```
+
+### Signature Verification Fails
+
+Common issues:
+- Message doesn't match exactly (including whitespace)
+- Signature is corrupted or incorrectly encoded
+- Using wrong address/public key format
+
+### Session Management
+
+For production apps, use established session libraries:
+- **Next.js**: `next-auth` or `iron-session`
+- **Express**: `express-session`
+- **Rust**: `tower-sessions` or `axum-sessions`
+
+---
+
+Need help? [Join our Discord](https://discord.gg/glin-ai) or check out the [complete example](/docs/sdk/examples/sign-in-with-glin).
