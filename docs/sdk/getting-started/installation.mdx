@@ -1,0 +1,215 @@
+---
+sidebar_position: 2
+---
+
+# Installation
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Install GLIN SDK for your preferred language.
+
+## Prerequisites
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+- Node.js 18 or later
+- npm, yarn, or pnpm package manager
+
+Check your Node.js version:
+```bash
+node --version
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+- Rust 1.70 or later
+- Cargo package manager (included with Rust)
+
+Install Rust if you haven't already:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Check your Rust version:
+```bash
+rustc --version
+```
+
+</TabItem>
+</Tabs>
+
+## Install SDK
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+Install via your preferred package manager:
+
+**npm**:
+```bash
+npm install @glin-ai/sdk
+```
+
+**yarn**:
+```bash
+yarn add @glin-ai/sdk
+```
+
+**pnpm**:
+```bash
+pnpm add @glin-ai/sdk
+```
+
+### For TypeScript Projects
+
+If you're using TypeScript, the SDK includes built-in type definitions. No additional `@types` packages needed!
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ES2020"],
+    "types": ["node"]
+  }
+}
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+Add GLIN SDK to your `Cargo.toml`:
+
+```toml title="Cargo.toml"
+[dependencies]
+glin-client = "0.1"
+glin-contracts = "0.1"
+glin-types = "0.1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+```
+
+Or use `cargo add`:
+```bash
+cargo add glin-client glin-contracts glin-types
+cargo add tokio --features full
+cargo add anyhow
+```
+
+### Version Compatibility
+
+The GLIN Rust SDK requires:
+- Rust 1.70+
+- Tokio runtime for async operations
+- Compatible with Substrate-based chains
+
+</TabItem>
+</Tabs>
+
+## Verify Installation
+
+Let's verify the SDK is installed correctly:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+Create a test file `test.ts`:
+
+```typescript title="test.ts"
+import { GlinClient } from '@glin-ai/sdk';
+
+console.log('✅ GLIN SDK installed successfully!');
+console.log('Version:', require('@glin-ai/sdk/package.json').version);
+```
+
+Run it:
+```bash
+npx tsx test.ts
+# or
+node --loader ts-node/esm test.ts
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+Create a test file `src/main.rs`:
+
+```rust title="src/main.rs"
+use glin_client;
+
+fn main() {
+    println!("✅ GLIN SDK installed successfully!");
+    println!("Version: {}", env!("CARGO_PKG_VERSION"));
+}
+```
+
+Run it:
+```bash
+cargo run
+```
+
+</TabItem>
+</Tabs>
+
+## Optional Dependencies
+
+### TypeScript
+
+For browser-based applications:
+```bash
+npm install @polkadot/extension-dapp
+```
+
+For Next.js apps:
+```bash
+npm install @glin-ai/sdk next@15
+```
+
+### Rust
+
+For CLI development:
+```bash
+cargo add colored indicatif clap --features clap/derive
+```
+
+For indexer development:
+```bash
+cargo add sqlx --features runtime-tokio-rustls,postgres
+```
+
+## What's Next?
+
+Now that you have the SDK installed, let's build your first app:
+
+→ [Quick Start Guide](/docs/sdk/getting-started/quickstart)
+
+## Troubleshooting
+
+### Node.js: Module not found
+
+If you see `Cannot find module '@glin-ai/sdk'`:
+
+1. Make sure you're in the correct directory
+2. Run `npm install` again
+3. Delete `node_modules` and `package-lock.json`, then reinstall
+
+### Rust: Compilation errors
+
+If you see compilation errors:
+
+1. Update Rust: `rustup update`
+2. Make sure you're using Rust 1.70+: `rustc --version`
+3. Clear cache: `cargo clean && cargo build`
+
+### Network Connection Issues
+
+Make sure you can reach the GLIN testnet:
+```bash
+curl -I https://testnet.glin.ai
+```
+
+Still having issues? [Ask on Discord](https://discord.gg/glin-ai)

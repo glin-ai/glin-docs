@@ -1,0 +1,452 @@
+---
+sidebar_position: 3
+---
+
+# Quick Start
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Build your first GLIN Network application in 5 minutes.
+
+## What We'll Build
+
+A simple app that:
+1. Connects to GLIN Network
+2. Creates an account
+3. Queries account balance
+4. Sends a transaction
+
+## Step 1: Create a New Project
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```bash
+mkdir my-glin-app
+cd my-glin-app
+npm init -y
+npm install @glin-ai/sdk typescript tsx
+```
+
+Create `index.ts`:
+```typescript title="index.ts"
+// We'll add code here
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```bash
+cargo new my-glin-app
+cd my-glin-app
+cargo add glin-client glin-types tokio --features tokio/full
+cargo add anyhow
+```
+
+Your `Cargo.toml` should look like:
+```toml title="Cargo.toml"
+[dependencies]
+glin-client = "0.1"
+glin-types = "0.1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+```
+
+</TabItem>
+</Tabs>
+
+## Step 2: Connect to GLIN Network
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="index.ts"
+import { GlinClient } from '@glin-ai/sdk';
+
+async function main() {
+  // Connect to GLIN testnet
+  console.log('🔗 Connecting to GLIN Network...');
+  const client = await GlinClient.connect('wss://testnet.glin.ai');
+
+  console.log('✅ Connected!');
+
+  // Get chain info
+  const chain = await client.getChain();
+  const version = await client.getRuntimeVersion();
+
+  console.log(`Chain: ${chain}`);
+  console.log(`Runtime version: ${version.specVersion}`);
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+```
+
+Run it:
+```bash
+npx tsx index.ts
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="src/main.rs"
+use glin_client::create_client;
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Connect to GLIN testnet
+    println!("🔗 Connecting to GLIN Network...");
+    let client = create_client("wss://testnet.glin.ai").await?;
+
+    println!("✅ Connected!");
+
+    // Get chain info
+    let chain = client.rpc().system_chain().await?;
+    let version = client.rpc().system_version().await?;
+
+    println!("Chain: {}", chain);
+    println!("Runtime version: {}", version);
+
+    Ok(())
+}
+```
+
+Run it:
+```bash
+cargo run
+```
+
+</TabItem>
+</Tabs>
+
+Expected output:
+```
+🔗 Connecting to GLIN Network...
+✅ Connected!
+Chain: GLIN Testnet
+Runtime version: 1.0.0
+```
+
+## Step 3: Create an Account
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="index.ts"
+import { GlinClient, Keyring } from '@glin-ai/sdk';
+
+async function main() {
+  const client = await GlinClient.connect('wss://testnet.glin.ai');
+
+  // Create a keyring to manage accounts
+  const keyring = new Keyring({ type: 'sr25519' });
+
+  // Add Alice (for testing)
+  const alice = keyring.addFromUri('//Alice');
+
+  console.log('👤 Alice address:', alice.address);
+
+  // Get balance
+  const balance = await client.getBalance(alice.address);
+  console.log('💰 Balance:', balance.free.toString(), 'GLIN');
+}
+
+main().catch(console.error);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="src/main.rs"
+use glin_client::{create_client, get_dev_account, get_address};
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let client = create_client("wss://testnet.glin.ai").await?;
+
+    // Get Alice's development account
+    let alice = get_dev_account("alice")?;
+    let address = get_address(&alice);
+
+    println!("👤 Alice address: {}", address);
+
+    // Get balance
+    let balance = client.get_balance(&address).await?;
+    println!("💰 Balance: {} GLIN", balance);
+
+    Ok(())
+}
+```
+
+</TabItem>
+</Tabs>
+
+:::tip Development Accounts
+
+For testing, GLIN provides development accounts (Alice, Bob, Charlie, etc.) with pre-funded balances. **Never use these in production!**
+
+:::
+
+## Step 4: Send a Transaction
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="index.ts"
+import { GlinClient, Keyring } from '@glin-ai/sdk';
+
+async function main() {
+  const client = await GlinClient.connect('wss://testnet.glin.ai');
+  const keyring = new Keyring({ type: 'sr25519' });
+
+  const alice = keyring.addFromUri('//Alice');
+  const bob = keyring.addFromUri('//Bob');
+
+  console.log('📤 Sending 100 GLIN from Alice to Bob...');
+
+  // Create and send transfer
+  const transfer = client.api.tx.balances.transfer(
+    bob.address,
+    100n * 10n**18n // 100 GLIN (18 decimals)
+  );
+
+  const hash = await transfer.signAndSend(alice);
+  console.log('✅ Transaction sent! Hash:', hash.toHex());
+
+  // Wait for finalization
+  await client.waitForFinalization(hash);
+  console.log('✅ Transaction finalized!');
+
+  // Check Bob's new balance
+  const bobBalance = await client.getBalance(bob.address);
+  console.log('💰 Bob\'s balance:', bobBalance.free.toString(), 'GLIN');
+}
+
+main().catch(console.error);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="src/main.rs"
+use glin_client::{create_client, get_dev_account, get_address};
+use subxt::tx::PairSigner;
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let client = create_client("wss://testnet.glin.ai").await?;
+
+    let alice = get_dev_account("alice")?;
+    let bob = get_dev_account("bob")?;
+    let bob_address = get_address(&bob);
+
+    println!("📤 Sending 100 GLIN from Alice to Bob...");
+
+    // Create transfer transaction
+    let amount = 100u128 * 10u128.pow(18); // 100 GLIN (18 decimals)
+
+    let transfer_tx = subxt::dynamic::tx(
+        "Balances",
+        "transfer",
+        vec![
+            subxt::dynamic::Value::from_bytes(&bob_address),
+            subxt::dynamic::Value::u128(amount),
+        ],
+    );
+
+    let signer = PairSigner::new(alice);
+    let hash = client
+        .tx()
+        .sign_and_submit_default(&transfer_tx, &signer)
+        .await?;
+
+    println!("✅ Transaction sent! Hash: {:?}", hash);
+
+    // Wait for finalization
+    let events = client.wait_for_finalization(hash).await?;
+    println!("✅ Transaction finalized!");
+
+    // Check Bob's new balance
+    let bob_balance = client.get_balance(&bob_address).await?;
+    println!("💰 Bob's balance: {} GLIN", bob_balance);
+
+    Ok(())
+}
+```
+
+</TabItem>
+</Tabs>
+
+Expected output:
+```
+📤 Sending 100 GLIN from Alice to Bob...
+✅ Transaction sent! Hash: 0x1234...
+✅ Transaction finalized!
+💰 Bob's balance: 100000000000000000000 GLIN
+```
+
+## Complete Example
+
+Here's the full working code:
+
+<Tabs groupId="language">
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="index.ts"
+import { GlinClient, Keyring } from '@glin-ai/sdk';
+
+async function main() {
+  // 1. Connect
+  console.log('🔗 Connecting...');
+  const client = await GlinClient.connect('wss://testnet.glin.ai');
+  console.log('✅ Connected!');
+
+  // 2. Create accounts
+  const keyring = new Keyring({ type: 'sr25519' });
+  const alice = keyring.addFromUri('//Alice');
+  const bob = keyring.addFromUri('//Bob');
+
+  // 3. Check initial balances
+  const aliceBalance = await client.getBalance(alice.address);
+  const bobBalance = await client.getBalance(bob.address);
+
+  console.log('\n💰 Initial balances:');
+  console.log('Alice:', aliceBalance.free.toString());
+  console.log('Bob:', bobBalance.free.toString());
+
+  // 4. Send transaction
+  console.log('\n📤 Sending 100 GLIN from Alice to Bob...');
+  const transfer = client.api.tx.balances.transfer(
+    bob.address,
+    100n * 10n**18n
+  );
+
+  const hash = await transfer.signAndSend(alice);
+  console.log('Transaction hash:', hash.toHex());
+
+  await client.waitForFinalization(hash);
+  console.log('✅ Transaction finalized!');
+
+  // 5. Check final balances
+  const bobFinalBalance = await client.getBalance(bob.address);
+  console.log('\n💰 Bob\'s final balance:', bobFinalBalance.free.toString());
+}
+
+main().catch(console.error);
+```
+
+</TabItem>
+<TabItem value="rust" label="Rust">
+
+```rust title="src/main.rs"
+use glin_client::{create_client, get_dev_account, get_address};
+use subxt::tx::PairSigner;
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // 1. Connect
+    println!("🔗 Connecting...");
+    let client = create_client("wss://testnet.glin.ai").await?;
+    println!("✅ Connected!");
+
+    // 2. Create accounts
+    let alice = get_dev_account("alice")?;
+    let bob = get_dev_account("bob")?;
+    let bob_address = get_address(&bob);
+
+    // 3. Check initial balances
+    let alice_balance = client.get_balance(&get_address(&alice)).await?;
+    let bob_balance = client.get_balance(&bob_address).await?;
+
+    println!("\n💰 Initial balances:");
+    println!("Alice: {}", alice_balance);
+    println!("Bob: {}", bob_balance);
+
+    // 4. Send transaction
+    println!("\n📤 Sending 100 GLIN from Alice to Bob...");
+    let amount = 100u128 * 10u128.pow(18);
+
+    let transfer_tx = subxt::dynamic::tx(
+        "Balances",
+        "transfer",
+        vec![
+            subxt::dynamic::Value::from_bytes(&bob_address),
+            subxt::dynamic::Value::u128(amount),
+        ],
+    );
+
+    let signer = PairSigner::new(alice);
+    let hash = client
+        .tx()
+        .sign_and_submit_default(&transfer_tx, &signer)
+        .await?;
+
+    println!("Transaction hash: {:?}", hash);
+
+    client.wait_for_finalization(hash).await?;
+    println!("✅ Transaction finalized!");
+
+    // 5. Check final balances
+    let bob_final_balance = client.get_balance(&bob_address).await?;
+    println!("\n💰 Bob's final balance: {}", bob_final_balance);
+
+    Ok(())
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Next Steps
+
+Congratulations! 🎉 You've just:
+- ✅ Connected to GLIN Network
+- ✅ Created accounts
+- ✅ Queried balances
+- ✅ Sent a transaction
+
+### Learn More
+
+- **[Authentication →](/docs/sdk/core-concepts/authentication)** - Implement "Sign in with GLIN"
+- **[Deploy Contracts →](/docs/sdk/contracts/deploying)** - Deploy your first smart contract
+- **[Examples →](/docs/sdk/examples/sign-in-with-glin)** - Explore more examples
+
+### Example Applications
+
+Check out these real-world examples:
+- [Sign in with GLIN](/docs/sdk/examples/sign-in-with-glin)
+- [Deploy a Contract](/docs/sdk/examples/deploy-contract)
+- [Build an Indexer](/docs/sdk/examples/build-indexer)
+- [Create a CLI Tool](/docs/sdk/examples/create-cli-tool)
+
+## Troubleshooting
+
+### Connection Failed
+
+If you can't connect to the network:
+- Check your internet connection
+- Try a different RPC endpoint
+- Make sure the testnet is running
+
+### Transaction Failed
+
+Common reasons:
+- Insufficient balance
+- Invalid recipient address
+- Network congestion
+
+Check the transaction error message for details.
+
+---
+
+Need help? [Join our Discord](https://discord.gg/glin-ai) or [email us](mailto:dev@glin.ai).
